@@ -1,0 +1,301 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Load basic languages for listings
+\lstloadlanguages{C, C++, SQL}
+
+% Customize listings for SQL, JSON, and JavaScript
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  breaklines=true,
+  backgroundcolor=\color{lightgray!20},
+  keywordstyle=\color{blue},
+  stringstyle=\color{red},
+  commentstyle=\color{green!50!black},
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  % Fallback for JSON and JavaScript
+  morekeywords={true, false, null}, % JSON keywords
+  morecomment=[l]{//}, % JavaScript-style comments
+}
+
+\title{Real Estate Management System}
+\author{}
+\date{August 17, 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Problem Description and Requirements}
+
+\subsection{Problem Statement}
+Real estate management involves intricate processes including property sales, rentals, owner and client management, billing, and maintenance tracking. Many current systems suffer from fragmented functionalities, leading to inefficiencies, manual errors, and a disjointed user experience. This web-based solution seeks to offer an integrated platform, optimizing workflows for property managers, owners, and tenants while adapting to modern real estate demands.
+
+\subsection{Key Business Requirements}
+\begin{itemize}
+    \item \textbf{Property Management:} Oversee properties for sale or rent, capturing details such as type (sale/rent), location, price, availability, and multimedia assets (photos, videos, virtual tours).
+    \item \textbf{Owner and Client Management:} Maintain comprehensive profiles for owners and clients (buyers/tenants) with contact details, preferences, transaction history, and feedback ratings.
+    \item \textbf{Billing for Rentals:} Automate invoice creation, dispatch payment reminders via email/SMS, track statuses, and support diverse payment methods (e.g., credit card, bank transfer, digital wallets).
+    \item \textbf{Repair Management:} Record repair requests with timestamps, assign tasks to maintenance teams, provide status updates, and include estimated completion timelines and cost estimates.
+    \item \textbf{Financial Tracking:} Track rental income, maintenance costs, and generate exportable financial reports (PDF, CSV, Excel) with real-time currency conversion.
+    \item \textbf{User Authentication and Authorization:} Ensure secure access with role-based permissions (admin, owner, tenant, maintenance) and multi-factor authentication (MFA).
+    \item \textbf{Responsive UI:} Deliver a seamless interface across desktops, tablets, and mobiles with adaptive layouts and accessibility features (e.g., screen reader support).
+    \item \textbf{Performance and Scalability:} Handle high concurrency and large datasets with optimized queries, caching, and cloud-based scaling (e.g., AWS Elastic Beanstalk).
+    \item \textbf{Data Security:} Encrypt data at rest and in transit (AES-256, TLS 1.3), conduct quarterly security audits, and comply with GDPR, CCPA, and local data protection laws.
+\end{itemize}
+
+\subsection{Quality Attributes}
+\begin{itemize}
+    \item \textbf{Usability:} User-friendly design with interactive tutorials, multilingual interfaces (e.g., English, Spanish, Mandarin), and customizable dashboards.
+    \item \textbf{Reliability:} Target 99.95\% uptime with automated daily backups, failover systems, and comprehensive error logging.
+    \item \textbf{Scalability:} Support thousands of users and properties with auto-scaling groups and distributed databases.
+    \item \textbf{Security:} Implement zero-trust architecture, regular penetration testing, and data anonymization for analytics.
+    \item \textbf{Maintainability:} Adopt a microservices architecture with CI/CD pipelines, detailed API documentation, and 80\%+ test coverage.
+\end{itemize}
+
+\subsection{Suggested Additional Features}
+\begin{itemize}
+    \item \textbf{AI-Powered Suggestions:} Utilize machine learning to recommend properties based on client behavior and predict maintenance needs with historical data analysis.
+    \item \textbf{Automated Notifications:} Send proactive alerts for due payments, repair completions, or market trends via email, SMS, or push notifications.
+    \item \textbf{Analytics Dashboard:} Offer interactive visualizations of income trends, vacancy rates, and ROI, with drill-down capabilities.
+    \item \textbf{Document Management:} Provide secure storage for contracts and leases with e-signature integration and audit trails.
+    \item \textbf{Chat Support:} Embed a 24/7 AI chatbot with human escalation options for tenant-owner interactions.
+\end{itemize}
+
+\section{Domain \& Data Modeling}
+
+\subsection{ER Diagram}
+The ER diagram should feature core entities:
+\begin{itemize}
+    \item \textbf{Property}, \textbf{Person (Owner/Client)}, \textbf{Invoice}, \textbf{RepairRequest}, and \textbf{Payment}.
+    \item \textbf{Relationships:}
+    \begin{itemize}
+        \item Property-Person: One-to-many (one person can own multiple properties).
+        \item Property-Person: Many-to-many via \textbf{Lease} for tenants.
+        \item Invoice-Payment: One-to-many.
+    \end{itemize}
+    \item \textbf{Tools:} Utilize Lucidchart or Draw.io for diagram creation and integration.
+\end{itemize}
+
+\subsection{Principal Domain Concepts}
+
+\subsubsection{Actors}
+\begin{itemize}
+    \item \textbf{Admin:} Manages system settings, user accounts, and performance metrics.
+    \item \textbf{Owner:} Inherits from Person; manages property listings and financials.
+    \item \textbf{Client (Tenant/Buyer):} Inherits from Person; engages in leasing or purchasing.
+    \item \textbf{Maintenance Team:} Handles repair workflows.
+\end{itemize}
+
+\subsubsection{Processes}
+\begin{itemize}
+    \item Property listing, editing, and status updates.
+    \item Lease creation, extension, and termination with legal compliance checks.
+    \item Automated billing, payment reconciliation, and late fee application.
+    \item Repair request lifecycle from submission to closure.
+    \item Real-time financial reporting and forecasting.
+\end{itemize}
+
+\subsubsection{Data Objects}
+\begin{itemize}
+    \item \textbf{Person:} ID, name, email, phone, contact\_preference, created\_at.
+    \item \textbf{Owner:} Extends Person; properties\_owned (array), financial\_summary.
+    \item \textbf{Client:} Extends Person; preferences, lease\_history (array), transaction\_log.
+    \item \textbf{Property:} ID, type (sale/rent), address, price, status, media\_urls.
+    \item \textbf{Invoice:} ID, amount, due\_date, status, client\_id.
+    \item \textbf{RepairRequest:} ID, property\_id, description, status, assigned\_team, estimated\_cost.
+    \item \textbf{Payment:} ID, invoice\_id, amount, date, method.
+\end{itemize}
+
+\subsection{Technology-Oriented Schema}
+\begin{itemize}
+    \item \textbf{PostgreSQL} for relational data with inheritance.
+    \item \textbf{MongoDB} for unstructured content.
+\end{itemize}
+
+\subsubsection{PostgreSQL Schema}
+\begin{lstlisting}[language=SQL, caption=PostgreSQL Schema]
+CREATE TABLE Person (
+    person_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20),
+    contact_preference VARCHAR(50) CHECK (contact_preference IN ('email', 'phone', 'both')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Owners (
+    CHECK (true)
+) INHERITS (Person);
+
+ALTER TABLE Owners ADD COLUMN properties_owned INT[] NOT NULL DEFAULT '{}';
+ALTER TABLE Owners ADD COLUMN financial_summary JSONB;
+
+CREATE TABLE Clients (
+    CHECK (true)
+) INHERITS (Person);
+
+ALTER TABLE Clients ADD COLUMN preferences JSONB;
+ALTER TABLE Clients ADD COLUMN lease_history INT[] NOT NULL DEFAULT '{}';
+ALTER TABLE Clients ADD COLUMN transaction_log JSONB;
+
+CREATE TABLE Properties (
+    property_id SERIAL PRIMARY KEY,
+    owner_id INT REFERENCES Owners(person_id),
+    type VARCHAR(20) CHECK (type IN ('sale', 'rent')),
+    address VARCHAR(200),
+    price DECIMAL(10, 2),
+    status VARCHAR(20) CHECK (status IN ('available', 'occupied', 'sold')),
+    media_urls TEXT[],
+    INDEX idx_property_status (status)
+);
+
+CREATE TABLE Leases (
+    lease_id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES Properties(property_id),
+    client_id INT REFERENCES Clients(person_id),
+    start_date DATE,
+    end_date DATE,
+    monthly_rent DECIMAL(10, 2)
+);
+
+CREATE TABLE Invoices (
+    invoice_id SERIAL PRIMARY KEY,
+    lease_id INT REFERENCES Leases(lease_id),
+    amount DECIMAL(10, 2),
+    due_date DATE,
+    status VARCHAR(20) CHECK (status IN ('pending', 'paid', 'overdue')),
+    INDEX idx_invoice_status (status)
+);
+
+CREATE TABLE RepairRequests (
+    repair_id SERIAL PRIMARY KEY,
+    property_id INT REFERENCES Properties(property_id),
+    description TEXT,
+    status VARCHAR(20) CHECK (status IN ('open', 'in_progress', 'closed')),
+    assigned_team VARCHAR(100),
+    estimated_cost DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE Payments (
+    payment_id SERIAL PRIMARY KEY,
+    invoice_id INT REFERENCES Invoices(invoice_id),
+    amount DECIMAL(10, 2),
+    payment_date TIMESTAMP,
+    method VARCHAR(50)
+);
+\end{lstlisting}
+
+\subsubsection{MongoDB Schema (for documents)}
+\begin{lstlisting}[caption=MongoDB Schema]
+{
+  "property_id": Number,
+  "documents": [
+    {
+      "doc_id": String,
+      "type": String,
+      "url": String,
+      "uploaded_at": ISODate,
+      "version": Number
+    }
+  ],
+  "images": [
+    {
+      "image_id": String,
+      "url": String,
+      "description": String,
+      "caption": String
+    }
+  ]
+}
+\end{lstlisting}
+
+\subsubsection{Sample React Component}
+\begin{lstlisting}[caption=Sample React Component]
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+interface Property {
+  id: number;
+  address: string;
+  price: number;
+  type: 'sale' | 'rent';
+  status: 'available' | 'occupied' | 'sold';
+  media_urls: string[];
+}
+
+const PropertyList: React.FC = () => {
+  const [properties, setProperties] = useState<Property[]>([]);
+
+  useEffect(() => {
+    axios
+      .get('/api/properties')
+      .then((response) => setProperties(response.data))
+      .catch((error) => console.error('Error fetching properties:', error));
+  }, []);
+
+  return (
+    <div className="container mx-auto p-4">
+      {properties.map((property) => (
+        <div key={property.id} className="border p-4 mb-4 rounded-lg shadow hover:shadow-lg transition">
+          <h3 className="text-xl font-bold">{property.address}</h3>
+          <p>Price: ${property.price.toLocaleString()}</p>
+          <p>Type: {property.type}</p>
+          <p>Status: {property.status}</p>
+          {property.media_urls[0] && <img src={property.media_urls[0]} alt={property.address} className="mt-2 w-full h-32 object-cover rounded" />}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default PropertyList;
+\end{lstlisting}
+
+\section{Front-End Design}
+
+\subsection{Framework Choice}
+\begin{itemize}
+    \item \textbf{React} with \textbf{TypeScript} for robust component development.
+    \item \textbf{Tailwind CSS} with dark mode support for responsive styling.
+\end{itemize}
+
+\subsection{Mock-ups/Wireframes}
+\begin{itemize}
+    \item \textbf{Home Page:} Search bar with filters, map integration, and featured listings.
+    \item \textbf{Property Details:} Gallery view, detailed specs, and application button.
+    \item \textbf{Dashboard:}
+    \begin{itemize}
+        \item \textbf{Owner:} Property overview, income charts, repair logs.
+        \item \textbf{Tenant:} Lease summary, payment history, repair request form.
+        \item \textbf{Admin:} User roles, system health, analytics.
+    \end{itemize}
+    \item \textbf{Responsive Design:} Mobile-first with swipe gestures and voice command support.
+    \item \textbf{Tools:} Figma for wireframes, including a multi-device preview.
+\end{itemize}
+
+\subsection{Improvements Made}
+\begin{enumerate}
+    \item \textbf{Clarity and Structure:} Streamlined sections with actionable headings and prioritized requirements.
+    \item \textbf{Technical Enhancements:} Added \texttt{created\_at} to \texttt{Person}, \texttt{media\_urls} to \texttt{Properties}, and \texttt{estimated\_cost} to \texttt{RepairRequests} for better tracking.
+    \item \textbf{Usability:} Included multilingual support, voice commands, and dark mode in UI design.
+    \item \textbf{Security:} Upgraded to zero-trust and quarterly audits, reflecting 2025 security standards.
+    \item \textbf{Scalability:} Incorporated auto-scaling and distributed databases for modern cloud demands.
+    \item \textbf{Front-End:} Enhanced React component with image previews and hover effects for better engagement.
+    \item \textbf{Data Modeling:} Expanded MongoDB schema with \texttt{version} and \texttt{caption} for document and image management.
+\end{enumerate}
+
+\end{document}
