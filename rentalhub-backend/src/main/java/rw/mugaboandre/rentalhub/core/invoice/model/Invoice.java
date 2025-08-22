@@ -1,6 +1,5 @@
 package rw.mugaboandre.rentalhub.core.invoice.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,26 +16,31 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Setter @Getter @NoArgsConstructor @AllArgsConstructor
+@Table(name = "invoices") // ✅ Explicit table name
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Invoice extends AbstractBaseEntity {
-    @Column(name = "amount")
+
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "due_date")
+    @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private EInvoiceStatus status;
+    @Column(name = "status", nullable = false, length = 20)
+    private EInvoiceStatus status = EInvoiceStatus.PENDING;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "property_id", nullable = false)
     private Property property;
 
-    @OneToMany(mappedBy = "invoice")
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments;
-
-
 }

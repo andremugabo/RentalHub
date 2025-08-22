@@ -1,11 +1,16 @@
 package rw.mugaboandre.rentalhub.core.person.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import rw.mugaboandre.rentalhub.core.client.model.Client;
+import rw.mugaboandre.rentalhub.core.client.repository.IClientRepository;
+import rw.mugaboandre.rentalhub.core.owner.model.Owner;
+import rw.mugaboandre.rentalhub.core.owner.repository.IOwnerRepository;
 import rw.mugaboandre.rentalhub.core.person.model.Person;
 import rw.mugaboandre.rentalhub.core.person.repository.IPersonRepository;
 import rw.mugaboandre.rentalhub.exception.ResourceAlreadyExistsException;
@@ -20,6 +25,8 @@ import java.util.UUID;
 public class PersonServiceImpl implements IPersonService {
     private final IPersonRepository personRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final IOwnerRepository ownerRepository;
+    private final IClientRepository clientRepository;
 
     @Override
     public Person updatePerson(UUID id, Person person) {
@@ -71,6 +78,7 @@ public class PersonServiceImpl implements IPersonService {
     }
 
     @Override
+    @Transactional
     public Person savePerson(Person person) {
         if (person.getEmail() == null) {
             throw new IllegalArgumentException("Email is required for new person");
@@ -78,9 +86,41 @@ public class PersonServiceImpl implements IPersonService {
         if (personRepository.findByEmail(person.getEmail()).isPresent()) {
             throw new ResourceAlreadyExistsException("Email " + person.getEmail() + " is already registered");
         }
+
+        // Encode password
         person.setPassword(passwordEncoder.encode(person.getPassword()));
-        return personRepository.save(person);
+
+        // Save subclass based on role
+        switch (person.getRole()) {
+            case OWNER -> {
+                Owner owner = new Owner();
+                copyPersonFields(person, owner);
+                return ownerRepository.save(owner);
+            }
+            case CLIENT -> {
+                Client client = new Client();
+                copyPersonFields(person, client);
+                return clientRepository.save(client);
+            }
+            default -> {
+                return personRepository.save(person);
+            }
+        }
     }
+
+    private void copyPersonFields(Person source, Person target) {
+        target.setFirstName(source.getFirstName());
+        target.setLastName(source.getLastName());
+        target.setEmail(source.getEmail());
+        target.setUsername(source.getUsername());
+        target.setPhone(source.getPhone());
+        target.setProfilePic(source.getProfilePic());
+        target.setPassword(source.getPassword());
+        target.setRole(source.getRole());
+        target.setPermissions(source.getPermissions());
+        target.setContactPref(source.getContactPref());
+    }
+
 
     @Override
     public Optional<Object> findById(UUID id) {

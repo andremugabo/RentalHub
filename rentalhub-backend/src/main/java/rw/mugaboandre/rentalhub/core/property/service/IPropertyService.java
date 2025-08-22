@@ -1,5 +1,6 @@
 package rw.mugaboandre.rentalhub.core.property.service;
 
+import rw.mugaboandre.rentalhub.core.property.dto.PropertyDto;
 import rw.mugaboandre.rentalhub.core.property.model.Property;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyStatus;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyType;
@@ -10,7 +11,7 @@ import java.util.UUID;
 
 public interface IPropertyService {
 
-    Property saveProperty(Property property);
+    Property saveProperty(PropertyDto propertyDto);
 
     Optional<Property> getPropertyById(UUID id);
 
@@ -24,7 +25,7 @@ public interface IPropertyService {
 
     List<Property> getPropertiesByClient(UUID clientId);
 
-    Property updateProperty(UUID id, Property propertyDetails);
+    Property updateProperty(UUID id, PropertyDto propertyDetails);
 
     void deleteProperty(UUID id);
 }

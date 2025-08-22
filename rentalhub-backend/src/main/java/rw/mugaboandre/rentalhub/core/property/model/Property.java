@@ -12,6 +12,8 @@ import rw.mugaboandre.rentalhub.core.client.model.Client;
 import rw.mugaboandre.rentalhub.core.leaseContract.model.LeaseContract;
 import rw.mugaboandre.rentalhub.core.owner.model.Owner;
 import rw.mugaboandre.rentalhub.core.repairRequest.model.RepairRequest;
+import rw.mugaboandre.rentalhub.core.util.enums.property.EAmenities;
+import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyPreference;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyStatus;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyType;
 
@@ -34,9 +36,19 @@ public class Property extends AbstractBaseEntity {
     @Column(name = "address", nullable = false)
     private String address;
 
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
+
+
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     @Column(name = "price", nullable = false)
     private BigDecimal price;
+
+    @Enumerated(EnumType.STRING)
+    private EPropertyPreference propertyPreference;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -54,6 +66,20 @@ public class Property extends AbstractBaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     private Client client;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "property_amenities", joinColumns = @JoinColumn(name = "property_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "amenity")
+    private List<EAmenities> amenities;
+
+    @Column(name = "city", nullable = false)
+    private String city;
+
+    @Column(name = "district", nullable = false)
+    private String district;
+
+
 
     @OneToMany(
             mappedBy = "property",

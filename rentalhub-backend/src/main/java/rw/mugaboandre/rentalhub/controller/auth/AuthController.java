@@ -22,6 +22,7 @@ import rw.mugaboandre.rentalhub.core.auth.dto.RegisterResponse;
 import rw.mugaboandre.rentalhub.core.notification.service.INotificationService;
 import rw.mugaboandre.rentalhub.core.person.model.Person;
 import rw.mugaboandre.rentalhub.core.person.repository.IPersonRepository;
+import rw.mugaboandre.rentalhub.core.person.service.IPersonService;
 import rw.mugaboandre.rentalhub.core.util.enums.admin.ERole;
 import rw.mugaboandre.rentalhub.core.util.enums.notifications.ENotificationType;
 import rw.mugaboandre.rentalhub.core.util.enums.person.EContactPref;
@@ -42,6 +43,7 @@ import java.util.HashSet;
 public class AuthController {
 
     private final IPersonRepository personRepository;
+    private final IPersonService personService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -85,10 +87,10 @@ public class AuthController {
             person.setEmail(request.getEmail());
             person.setUsername(request.getUsername());
             person.setPhone(request.getPhone());
-            person.setPassword(passwordEncoder.encode(request.getPassword()));
+            person.setPassword(request.getPassword());
             person.setContactPref(request.getContactPref() != null ? request.getContactPref() : EContactPref.EMAIL);
 
-            Person savedPerson = personRepository.save(person);
+            Person savedPerson = personService.savePerson(person);
 
             // Send welcome notification
             notificationService.createNotification(

@@ -6,6 +6,7 @@ import rw.mugaboandre.rentalhub.core.property.model.Property;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyStatus;
 import rw.mugaboandre.rentalhub.core.util.enums.property.EPropertyType;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,4 +31,5 @@ public interface IPropertyRepository extends JpaRepository<Property, UUID> {
 
     List<Property> findByClientIdAndActiveTrue(UUID clientId);
 
+    List<Property> findByTypeAndStatusAndPriceBetweenAndCityAndDistrict(String name, String available, BigDecimal minPrice, BigDecimal maxPrice, String city, String district);
 }

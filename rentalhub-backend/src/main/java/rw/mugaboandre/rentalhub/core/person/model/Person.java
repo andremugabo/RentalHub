@@ -10,6 +10,7 @@ import rw.mugaboandre.rentalhub.core.util.enums.person.EContactPref;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -44,6 +45,10 @@ public class Person extends AbstractBaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private ERole role;
+
+    private String otpCode;
+    private String otpPurpose;
+    private LocalDateTime otpExpiresAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<String> permissions;

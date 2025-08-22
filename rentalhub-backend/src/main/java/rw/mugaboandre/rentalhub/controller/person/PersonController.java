@@ -245,7 +245,7 @@ public class PersonController {
         person.setEmail(dto.getEmail());
         person.setUsername(dto.getUsername());
         person.setPhone(dto.getPhone());
-        person.setPassword(passwordEncoder.encode(dto.getPassword())); // To be encoded in service
+        person.setPassword(dto.getPassword());
         person.setRole(dto.getRole());
         person.setPermissions(dto.getPermissions());
         person.setContactPref(dto.getContactPref());
