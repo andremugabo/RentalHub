@@ -1,7 +1,13 @@
 package rw.mugaboandre.rentalhub.controller.auth;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,51 +15,44 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import rw.mugaboandre.rentalhub.core.admin.model.Admin;
-import rw.mugaboandre.rentalhub.core.client.model.Client;
-import rw.mugaboandre.rentalhub.core.owner.model.Owner;
-import rw.mugaboandre.rentalhub.core.person.model.Person;
-import rw.mugaboandre.rentalhub.core.person.repository.PersonRepository;
-import rw.mugaboandre.rentalhub.core.auth.dto.RegisterRequest;
-import rw.mugaboandre.rentalhub.core.auth.dto.RegisterResponse;
 import rw.mugaboandre.rentalhub.core.auth.dto.LoginRequest;
 import rw.mugaboandre.rentalhub.core.auth.dto.LoginResponse;
+import rw.mugaboandre.rentalhub.core.auth.dto.RegisterRequest;
+import rw.mugaboandre.rentalhub.core.auth.dto.RegisterResponse;
+import rw.mugaboandre.rentalhub.core.notification.service.INotificationService;
+import rw.mugaboandre.rentalhub.core.person.model.Person;
+import rw.mugaboandre.rentalhub.core.person.repository.IPersonRepository;
 import rw.mugaboandre.rentalhub.core.util.enums.admin.ERole;
+import rw.mugaboandre.rentalhub.core.util.enums.notifications.ENotificationType;
 import rw.mugaboandre.rentalhub.core.util.enums.person.EContactPref;
-import rw.mugaboandre.rentalhub.exception.*;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import rw.mugaboandre.rentalhub.exception.DuplicateResourceException;
+import rw.mugaboandre.rentalhub.exception.InvalidCredentialsException;
+import rw.mugaboandre.rentalhub.exception.InvalidRoleException;
+import rw.mugaboandre.rentalhub.exception.RegistrationFailedException;
+import rw.mugaboandre.rentalhub.security.CustomUserPrincipal;
 import rw.mugaboandre.rentalhub.security.JwtTokenProvider;
 
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.HashSet;
 
+@CrossOrigin("*")
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Authentication", description = "Endpoints for user registration and authentication")
+@RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private PersonRepository personRepository;
-
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+    private final IPersonRepository personRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final INotificationService notificationService;
 
     @PostMapping("/register")
-    @Operation(summary = "Register a new user", description = "Registers a new user (Admin, Client, or Owner) with the provided details")
+    @Operation(summary = "Register a new user", description = "Registers a new user with the specified role and details")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User registered successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data or role"),
-            @ApiResponse(responseCode = "409", description = "Email or username already exists"),
+            @ApiResponse(responseCode = "409", description = "Email, username, or phone already exists"),
             @ApiResponse(responseCode = "500", description = "Server error")
     })
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -64,69 +63,57 @@ public class AuthController {
         if (personRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Username already exists: " + request.getUsername());
         }
+        if (personRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Phone number already exists: " + request.getPhone());
+        }
 
-        // Create appropriate entity based on role
-        Person person;
-        String role;
+        // Validate password
+//        if (request.getPassword() == null || request.getPassword().length() < 6 ||
+//                !request.getPassword().matches(".*[A-Z].*") || !request.getPassword().matches(".*[0-9].*")) {
+//            throw new RegistrationFailedException("Password must be at least 6 characters long with one uppercase letter and one number");
+//        }
+
+        // Create Person entity
+        Person person = new Person();
+        String roleInput = request.getRole() != null ? request.getRole().name() : "CLIENT";
         try {
-            String roleInput = Optional.ofNullable(request.getRole())
-                    .map(Object::toString)   // safely converts to String
-                    .map(String::toUpperCase)
-                    .orElse("CLIENT");
-            switch (roleInput) {
-                case "ADMIN":
-                case "MANAGER":
-                case "SUPERVISOR":
-                    Admin admin = new Admin();
-                    admin.setRole(ERole.valueOf(roleInput));
-                    admin.setPermissions(request.getPermissions());
-                    person = admin;
-                    role = admin.getRole().name();
-                    break;
-                case "CLIENT":
-                    Client client = new Client();
-                    client.setPreferences(request.getPreferences());
-                    person = client;
-                    role = "CLIENT";
-                    break;
-                case "OWNER":
-                    person = new Owner();
-                    role = "OWNER";
-                    break;
-                default:
-                    throw new InvalidRoleException("Invalid role: " + roleInput);
-            }
-
-            // Set common fields
+            ERole eRole = ERole.valueOf(roleInput);
+            person.setRole(eRole);
+            person.setPermissions(request.getPermissions() != null ? request.getPermissions() : new HashSet<>());
             person.setFirstName(request.getFirstName());
             person.setLastName(request.getLastName());
             person.setEmail(request.getEmail());
             person.setUsername(request.getUsername());
-            person.setPassword(passwordEncoder.encode(request.getPassword()));
             person.setPhone(request.getPhone());
+            person.setPassword(passwordEncoder.encode(request.getPassword()));
             person.setContactPref(request.getContactPref() != null ? request.getContactPref() : EContactPref.EMAIL);
 
-            // Save to database
-            person = personRepository.save(person);
+            Person savedPerson = personRepository.save(person);
+
+            // Send welcome notification
+            notificationService.createNotification(
+                    savedPerson,
+                    "Welcome to RentalHub! We're excited to have you on board.",
+                    ENotificationType.WELCOME_MESSAGE
+            );
+
+            RegisterResponse response = new RegisterResponse(
+                    savedPerson.getId().toString(),
+                    savedPerson.getUsername(),
+                    savedPerson.getEmail(),
+                    eRole.name()
+            );
+
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException ex) {
-            throw new InvalidRoleException("Invalid role value: " + request.getRole());
+            throw new InvalidRoleException("Invalid role value: " + roleInput);
         } catch (Exception ex) {
             throw new RegistrationFailedException("Failed to register user: " + ex.getMessage());
         }
-
-        // Create response
-        RegisterResponse response = new RegisterResponse(
-                person.getId().toString(),
-                person.getUsername(),
-                person.getEmail(),
-                role
-        );
-
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Authenticate a user", description = "Authenticates a user and returns a JWT token")
+    @Operation(summary = "Authenticate a user", description = "Authenticates a user and returns a JWT token with role and permissions")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
             @ApiResponse(responseCode = "401", description = "Invalid credentials"),
@@ -143,35 +130,41 @@ public class AuthController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            Person person = personRepository.findByUsernameOrEmail(
-                    request.getUsernameOrEmail(),
-                    request.getUsernameOrEmail()
-            ).orElseThrow(() -> new InvalidCredentialsException("Invalid username or email"));
-
-            // Check if account is locked (if you have such logic in Person entity)
-            // if (person.isLocked()) {
-            //     throw new AccountLockedException("Account is locked for user: " + request.getUsernameOrEmail());
-            // }
-
+            CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
             String jwt = jwtTokenProvider.generateToken(authentication);
 
-            String roles = authentication.getAuthorities().stream()
-                    .map(Object::toString)
-                    .collect(Collectors.joining(","));
-
             LoginResponse response = new LoginResponse(
-                    person.getId().toString(),
-                    person.getUsername(),
-                    person.getEmail(),
-                    roles,
+                    userPrincipal.getId(),
+                    userPrincipal.getUsername(),
+                    userPrincipal.getEmail(),
+                    userPrincipal.getRole(),
+                    userPrincipal.getPermissions(),
                     jwt
             );
 
             return ResponseEntity.ok(response);
-        } catch (InvalidCredentialsException e) {
-            throw e; // preserve explicit invalid credentials exception
         } catch (Exception ex) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<String> handleDuplicateResourceException(DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRoleException.class)
+    public ResponseEntity<String> handleInvalidRoleException(InvalidRoleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(RegistrationFailedException.class)
+    public ResponseEntity<String> handleRegistrationFailedException(RegistrationFailedException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<String> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 @MappedSuperclass
 @Setter @Getter
 @EntityListeners(AuditingEntityListener.class)
-public abstract class AbstractBaseEntity extends  AbstractAuditEntity {
+public abstract class AbstractBaseEntity extends AbstractAuditEntity {
     @Id
     @GeneratedValue
     @UuidGenerator
@@ -22,6 +22,6 @@ public abstract class AbstractBaseEntity extends  AbstractAuditEntity {
     private UUID id;
 
     @Column(name = "is_active")
-    private boolean isActive = Boolean.TRUE;
+    private boolean active = Boolean.TRUE;
 
 }

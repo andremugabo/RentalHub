@@ -1,7 +1,8 @@
 package rw.mugaboandre.rentalhub.core.property.model;
 
-
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,37 +19,55 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Setter @Getter @NoArgsConstructor @AllArgsConstructor
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "properties") // explicit table name
 public class Property extends AbstractBaseEntity {
-    @Column(name = "type", nullable = false)
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
     private EPropertyType type;
 
-
-    @Column(name = "address")
+    @NotBlank(message = "Address cannot be blank")
+    @Column(name = "address", nullable = false)
     private String address;
 
-    @Column(name = "price")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+    @Column(name = "price", nullable = false)
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private EPropertyStatus status;
+    @Column(name = "status", nullable = false)
+    private EPropertyStatus status = EPropertyStatus.AVAILABLE; // default
 
     @ElementCollection
+    @CollectionTable(name = "property_media", joinColumns = @JoinColumn(name = "property_id"))
+    @Column(name = "url", nullable = false)
     private List<String> mediaUrls;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     private Owner owner;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
     private Client client;
 
-    @OneToMany(mappedBy = "property")
+    @OneToMany(
+            mappedBy = "property",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<LeaseContract> leaseContracts;
 
-    @OneToMany(mappedBy = "property")
+    @OneToMany(
+            mappedBy = "property",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<RepairRequest> repairRequests;
-
-
 }

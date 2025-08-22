@@ -1,0 +1,42 @@
+package rw.mugaboandre.rentalhub.core.util.enums.notifications;
+
+public enum ENotificationType {
+
+    // Rent & Lease related
+    RENT_PAYMENT_SUCCESS,
+    RENT_PAYMENT_FAILED,
+    RENT_PAYMENT_PENDING,
+    RENT_DUE_REMINDER,
+    RENT_RECEIPT,
+
+    LEASE_SIGNED,
+    LEASE_RENEWAL,
+    LEASE_TERMINATION,
+
+    // Property & Listings
+    PROPERTY_LISTED,
+    PROPERTY_UPDATED,
+    PROPERTY_RENTED,
+    PROPERTY_SOLD,
+    PROPERTY_AVAILABLE,
+
+    // User & Account
+    ACCOUNT_VERIFICATION,
+    PASSWORD_RESET,
+    OTP_VERIFICATION,
+    PROFILE_UPDATED,
+    PROFILE_PICTURE_UPDATED,
+    ACCOUNT_DEACTIVATED,
+
+    // Communication
+    MESSAGE,
+    ANNOUNCEMENT,
+    SUPPORT_TICKET_UPDATE,
+    TENANT_REQUEST,
+    LANDLORD_RESPONSE,
+    WELCOME_MESSAGE,
+
+    // Reviews & Feedback
+    REVIEW_RECEIVED,
+    FEEDBACK_REQUEST
+}

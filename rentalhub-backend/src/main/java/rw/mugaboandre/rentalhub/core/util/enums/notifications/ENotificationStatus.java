@@ -1,4 +1,4 @@
-package rw.mugaboandre.rentalhub.core.util.enums;
+package rw.mugaboandre.rentalhub.core.util.enums.notifications;
 
 
 public enum ENotificationStatus {

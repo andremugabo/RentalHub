@@ -20,7 +20,7 @@ public class RepairRequest extends AbstractBaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private ERepairStatus status;
+    private ERepairStatus status = ERepairStatus.PENDING;
 
     @Column(name = "assigned_team")
     private String assignedTeam;
