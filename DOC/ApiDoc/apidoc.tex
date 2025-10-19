@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{mdframed}
+
+% ---- COLORS ----
+\definecolor{sectionblue}{HTML}{003366}
+\definecolor{subsectiongray}{HTML}{444444}
+\definecolor{tipbg}{HTML}{E8F4FA}
+\definecolor{chatbg}{HTML}{FFF8E1}
+\definecolor{alertbg}{HTML}{FFEBEE}
+\definecolor{quickstartbg}{HTML}{E8F5E9}
+
+% ---- STYLING ----
+\titleformat{\section}{\color{sectionblue}\large\bfseries}{}{0em}{}
+\titleformat{\subsection}{\color{subsectiongray}\normalsize\bfseries}{}{0em}{}
+
+\title{\textbf{\color{sectionblue}RentalHub API: Comprehensive Property Management Solution}}
+\date{}
+
+% ---- CUSTOM BOXES ----
+\newmdenv[
+  backgroundcolor=tipbg,
+  linecolor=sectionblue,
+  roundcorner=5pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt
+]{tipbox}
+
+\newmdenv[
+  backgroundcolor=chatbg,
+  linecolor=orange,
+  roundcorner=5pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt
+]{chatbox}
+
+\newmdenv[
+  backgroundcolor=alertbg,
+  linecolor=red,
+  roundcorner=5pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt
+]{alertbox}
+
+\newmdenv[
+  backgroundcolor=quickstartbg,
+  linecolor=green!70!black,
+  roundcorner=5pt,
+  skipabove=10pt,
+  skipbelow=10pt,
+  leftmargin=0pt,
+  rightmargin=0pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt
+]{quickstartbox}
+
+\begin{document}
+
+\maketitle
+
+\noindent
+Welcome to the \textbf{RentalHub API}, a robust and scalable RESTful API designed to make property management effortless. Whether you're a landlord managing a few units or a property manager handling hundreds, RentalHub brings all your operations together in one unified platform.  
+
+This guide walks you through the key features, endpoints, and example workflows to help you get started quickly.  
+
+\begin{tipbox}
+\noindent
+\textbf{Developer's Tip:} All endpoints follow REST conventions and return JSON responses.  
+Authentication uses OAuth 2.0 Bearer tokens, so make sure to log in and include your token in every request header:  
+\texttt{Authorization: Bearer <your\_token>}
+\end{tipbox}
+
+\section{Key Features and Endpoints}
+
+\subsection{User Management}
+Manage users, tenants, and owners with intuitive endpoints for registration, authentication, and profile updates.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/users/register}: Create a new user account with secure registration.
+  \item \texttt{POST /api/users/login}: Authenticate users and generate access tokens.
+  \item \texttt{PUT /api/users/update}: Update user profiles, including contact details and preferences.
+  \item \texttt{GET /api/users/profile}: Retrieve detailed user information for personalized services.
+\end{itemize}
+
+\begin{chatbox}
+\noindent
+\textbf{Example Chat}  
+\textbf{You:} I just onboarded a new tenant. How do I create their profile?  
+
+\textbf{RentalHub API:} Call \texttt{POST /api/users/register} with their name, email, and role set to \texttt{"tenant"}.
+\end{chatbox}
+
+\subsection{Notifications}
+Stay connected with real-time alerts and customizable notifications.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/notifications/send}: Trigger notifications for events like payment reminders.
+  \item \texttt{GET /api/notifications/list}: Fetch a list of notifications for a specific user or property.
+\end{itemize}
+
+\begin{tipbox}
+\noindent
+\textbf{Pro Tip:} You can set notification preferences per user! This is perfect for tenants who only want SMS alerts.
+\end{tipbox}
+
+\subsection{Invoices}
+Automate invoicing for rent, fees, and services with easy generation and tracking.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/invoices/create}: Generate invoices based on lease terms or ad-hoc charges.
+  \item \texttt{GET /api/invoices/list}: Retrieve invoices filtered by date, status, or client.
+\end{itemize}
+
+\begin{chatbox}
+\noindent
+\textbf{Example Chat}  
+\textbf{You:} I need to see all unpaid invoices for this month.  
+
+\textbf{RentalHub API:} Call \texttt{GET /api/invoices/list?status=pending\&month=current}.
+\end{chatbox}
+
+\subsection{Property Management}
+Keep your property portfolio organized and searchable.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/properties/create}: Add a new property with details like location and amenities.
+  \item \texttt{GET /api/properties/list}: Search and list properties by type, location, or availability.
+  \item \texttt{PUT /api/properties/update}: Modify property details, status, or pricing.
+  \item \texttt{DELETE /api/properties/delete}: Remove a property from the active listings.
+\end{itemize}
+
+\subsection{Repair Requests}
+Track and resolve maintenance issues efficiently.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/repairs/create}: Submit a new repair request.
+  \item \texttt{GET /api/repairs/list}: View repair requests by status or property.
+  \item \texttt{PUT /api/repairs/update}: Update request status, assign technicians, or add notes.
+\end{itemize}
+
+\begin{alertbox}
+\noindent
+\textbf{Real-World Scenario:}  
+A tenant reports a broken heater at midnight. The system automatically logs the request and sends a high-priority notification to your on-call technician.
+\end{alertbox}
+
+\subsection{Lease Contracts}
+Simplify lease creation, signing, and management.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/leases/create}: Draft a new lease contract with terms, rent schedules, and clauses.
+  \item \texttt{GET /api/leases/list}: Retrieve leases by tenant, property, or expiration date.
+\end{itemize}
+
+\subsection{Payments}
+Securely handle all financial transactions.
+
+\begin{itemize}[leftmargin=*]
+  \item \texttt{POST /api/payments/create}: Process payments via integrated gateways.
+  \item \texttt{GET /api/payments/list}: List payment history for reconciliation.
+  \item \texttt{PUT /api/payments/refund}: Issue refunds or handle overpayment adjustments.
+\end{itemize}
+
+\section{Schemas and Models}
+Our API uses well-defined JSON schemas to ensure consistency.
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{User:} \texttt{id}, \texttt{email}, \texttt{role}, \texttt{preferences}
+  \item \textbf{Property:} \texttt{address}, \texttt{type}, \texttt{rent price}, \texttt{availability}
+  \item \textbf{Lease:} \texttt{start/end dates}, \texttt{rent amount}, \texttt{security deposit}
+  \item \textbf{Payment:} \texttt{transaction id}, \texttt{amount}, \texttt{method}, \texttt{status}
+  \item \textbf{Invoice:} \texttt{due date}, \texttt{line items}, \texttt{total}
+  \item \textbf{Notification:} \texttt{message}, \texttt{type}, \texttt{recipient}
+  \item \textbf{Repair Request:} \texttt{description}, \texttt{priority}, \texttt{assigned user}
+\end{itemize}
+
+\section{Benefits for Your Business}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Scalability:} Manage hundreds of properties with zero performance drop.
+  \item \textbf{Security:} OAuth 2.0, encryption, GDPR/PCI compliance.
+  \item \textbf{Integration-Friendly:} SDKs + Webhooks for seamless real-time updates.
+  \item \textbf{Customization:} Add custom fields and extend endpoints to fit your workflow.
+\end{itemize}
+
+\section{Getting Started}
+
+\begin{quickstartbox}
+\noindent
+\textbf{Quick Start Guide:}  
+1. Register an account with \texttt{POST /api/users/register}.  
+2. Log in and grab your token with \texttt{POST /api/users/login}.  
+3. Start creating properties, tenants, and leases!  
+4. Explore interactive Swagger docs at \texttt{/swagger-ui.html}.  
+\end{quickstartbox}
+
+\end{document}
